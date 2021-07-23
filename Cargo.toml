@@ -1,0 +1,14 @@
+[package]
+edition = "2018"
+name = "my-actix"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# actix = "0.12.0"
+# actix-rt = { git = "https://github.com/actix/actix-net" }
+# actix-web = { git = "https://github.com/actix/actix-web", tag = "web-v4.0.0-beta.8", default-features = false }
+actix-web = { git = "https://github.com/actix/actix-web", tag = "web-v4.0.0-beta.8" }
+tokio = { version = "1.8.2", features = ["full"] }
+# async-std = "1.9.0"
