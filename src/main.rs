@@ -1,33 +1,33 @@
-use actix_web::rt::System;
-use actix_web::HttpResponse;
-use actix_web::{get, web, App, HttpServer, Responder};
-use tokio::runtime::Builder;
-// use tokio::
-// use actix_web::rt::System;
-// use tokio::runtime::Handle;
-// use tokio::runtime::Builder;
-// use tokio::runtime::Runtime;
-// tokio::task::
-
-#[get("/")]
-async fn index() -> &'static str {
-  // no system arbiter.
-  // assert!(System::try_current().is_none());
-
-  // can spawn on tokio runtime.
-  // let _ = tokio::spawn(async {
-  // tokio::task::yield_now().await;
-  // }).await;
-
-  "Hello World!"
-}
-
+#![allow(non_snake_case)]
+use crate::app_controller::addressFetchAll;
+use crate::app_controller::addressSendOne;
+use crate::app_module::AppModule;
+use std::sync::Arc;
+use actix_web::{App, HttpServer};
+mod actix_handler;
+mod app_controller;
+mod app_http_controller;
+mod app_module;
+mod app_service;
+mod actix_utils;
+mod rx_utils;
+mod models;
+mod streams_utils;
+use crate::app_controller::index;
+use actix_web::middleware::Logger;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-  tokio::task::spawn(async move {}).await?;
-  let server = HttpServer::new(move || App::new().route("/", web::get().to(|| HttpResponse::Ok())))
-        .bind("0.0.0.0:3030")?
-        .run()
-        .await?;
+  let appModule = Arc::new(AppModule::builder().build());
+  let server = HttpServer::new(move || {
+    App::new()
+      .wrap(Logger::default())
+      .app_data(appModule.clone())
+      .service(index)
+      .service(addressSendOne)
+      .service(addressFetchAll)
+  })
+  .bind("0.0.0.0:3030")?
+  .run()
+  .await?;
   Ok(server)
 }
