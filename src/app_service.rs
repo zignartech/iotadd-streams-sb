@@ -13,7 +13,6 @@ use iota_streams::app_channels::api::tangle::Subscriber;
 use rxrust::observable;
 use serde_json::Value;
 use std::collections::HashMap;
-// use rxrust::observable::of::OfEmitter;
 use base64::{decode_config, encode_config, URL_SAFE_NO_PAD};
 use iota_streams::app::transport::tangle::client::Client as SClient;
 use iota_streams::app_channels::api::tangle::{Author as SAuthor, ChannelType};
@@ -137,11 +136,3 @@ impl IAppService for AppService {
     observable::of(msgsPublicPayload)
   }
 }
-
-// impl<M: Module + HasComponent<dyn IAppHttpController>> Provider<M> for AppService {
-//     type Interface = AppService;
-//     fn provide(module: &M) -> Result<Box<AppService>, Box<dyn Error + 'static>> {
-//         let pool: &dyn IAppHttpController = module.resolve_ref();
-//         Ok(Box::new(AppService))
-//     }
-// }

@@ -1,4 +1,4 @@
-use serde::{de};
+use serde::de;
 
 pub fn deserializeJsonString<'de, D, I>(deserializer: D) -> Result<I, D::Error>
 where

@@ -10,8 +10,3 @@ pub struct SendOneQuery {
   #[serde(deserialize_with = "deserializeJsonString")]
   pub author: Author,
 }
-
-// #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
-// pub struct SendOneBody {
-//   pub seed: String,
-// }
