@@ -1,10 +1,15 @@
 {
+  "scripts": {
+    "commit": "cz"
+},
   "devDependencies": {
+    "@digitalroute/cz-conventional-changelog-for-jira": "^6.5.0",
     "cz-conventional-changelog": "^3.3.0"
   },
   "config": {
     "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
+      "path": "@digitalroute/cz-conventional-changelog-for-jira",
+      "skipScope": false
     }
   }
 }
