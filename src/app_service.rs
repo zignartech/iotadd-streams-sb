@@ -45,7 +45,7 @@ impl IAppService for AppService {
     createAuthorQuery: CreateAuthorQuery,
     createAuthorBody: CreateAuthorBody,
   ) -> ObservableBase<OfEmitter<AuthorSchema>> {
-    let client = Client::new_from_url("https://api.lb-0.testnet.chrysalis2.com");
+    let client = Client::new_from_url(&std::env::var("NODE").unwrap());
     
     let mut author: Author<Client> =
       Author::new(&createAuthorBody.seed, ChannelType::SingleBranch, client);
@@ -71,7 +71,7 @@ impl IAppService for AppService {
     sendOneQuery: SendOneQuery,
     anyBody: HashMap<String, Value>,
   ) -> ObservableBase<OfEmitter<IAddress>> {
-    let client = Client::new_from_url("https://api.lb-0.testnet.chrysalis2.com");
+    let client = Client::new_from_url(&std::env::var("NODE").unwrap());
     let payloadStr = serde_json::to_string(&anyBody).unwrap();
     let payload = encode_config(&payloadStr, URL_SAFE_NO_PAD);
     let public = Bytes(payload.as_bytes().to_vec());
@@ -102,7 +102,7 @@ impl IAppService for AppService {
     &self,
     fetchAllQuery: FetchAllQuery,
   ) -> ObservableBase<OfEmitter<Vec<HashMap<String, Value>>>> {
-    let client = Client::new_from_url("https://api.lb-0.testnet.chrysalis2.com");
+    let client = Client::new_from_url(&std::env::var("NODE").unwrap());
     let mut subscriber: Subscriber<Client> = Subscriber::new(&randomSeed(), client.clone());
     let importedLoadLink = TangleAddress::from_str(
       &fetchAllQuery.address.appInst.clone(),

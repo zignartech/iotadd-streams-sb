@@ -17,6 +17,9 @@ use crate::app_controller::index;
 use actix_web::middleware::Logger;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+  // dotenv::dotenv().expect("Failed to read .env file");
+  dotenv::from_path("./development.env").ok();
+  println!("NODE is set to: {:?}",std::env::var("NODE").expect("NODE not defined as environment var"));
   let appModule = Arc::new(AppModule::builder().build());
   let server = HttpServer::new(move || {
     App::new()
