@@ -2,8 +2,8 @@ use crate::models::dtos::create_author_dto::CreateAuthorBody;
 use crate::models::dtos::create_author_dto::CreateAuthorQuery;
 use crate::models::dtos::fetch_all_dto::FetchAllQuery;
 use crate::models::dtos::send_one_dto::SendOneQuery;
-use crate::models::schemas::author_schema::Address;
-use crate::models::schemas::author_schema::Author;
+use crate::models::schemas::author_schema::Address as IAddress;
+use crate::models::schemas::author_schema::Author as IAuthor;
 use crate::models::schemas::author_schema::AuthorSchema;
 use crate::streams_utils::random_seed::randomSeed;
 use iota_streams::app::message::GenericMessage;
@@ -14,8 +14,8 @@ use rxrust::observable;
 use serde_json::Value;
 use std::collections::HashMap;
 use base64::{decode_config, encode_config, URL_SAFE_NO_PAD};
-use iota_streams::app::transport::tangle::client::Client as SClient;
-use iota_streams::app_channels::api::tangle::{Author as SAuthor, ChannelType};
+use iota_streams::app::transport::tangle::client::Client;
+use iota_streams::app_channels::api::tangle::{Author, ChannelType};
 use iota_streams::ddml::types::Bytes;
 use rxrust::observable::of::OfEmitter;
 use rxrust::observable::ObservableBase;
@@ -30,7 +30,7 @@ pub trait IAppService: Interface {
     &self,
     sendOneQuery: SendOneQuery,
     anyBody: HashMap<String, Value>,
-  ) -> ObservableBase<OfEmitter<Address>>;
+  ) -> ObservableBase<OfEmitter<IAddress>>;
   fn fetchAll(
     &self,
     fetchAllQuery: FetchAllQuery,
@@ -45,9 +45,10 @@ impl IAppService for AppService {
     createAuthorQuery: CreateAuthorQuery,
     createAuthorBody: CreateAuthorBody,
   ) -> ObservableBase<OfEmitter<AuthorSchema>> {
-    let client = SClient::new_from_url("https://chrysalis-nodes.iota.cafe:443/");
-    let mut author: SAuthor<SClient> =
-      SAuthor::new(&createAuthorBody.seed, ChannelType::SingleBranch, client);
+    let client = Client::new_from_url("https://api.lb-0.testnet.chrysalis2.com");
+    
+    let mut author: Author<Client> =
+      Author::new(&createAuthorBody.seed, ChannelType::SingleBranch, client);
     let annAddress: TangleAddress = author.send_announce().unwrap();
     let password = "password".to_string();
     let exported = author.export(&password).unwrap();
@@ -55,11 +56,11 @@ impl IAppService for AppService {
 
     observable::of(AuthorSchema {
       seed: createAuthorQuery.randomSeed.clone().to_string(),
-      address: Address {
+      address: IAddress {
         appInst: annAddress.appinst.to_string(),
         msgId: annAddress.msgid.to_string(),
       },
-      author: Author {
+      author: IAuthor {
         password: password,
         state: encodedExported,
       },
@@ -69,8 +70,8 @@ impl IAppService for AppService {
     &self,
     sendOneQuery: SendOneQuery,
     anyBody: HashMap<String, Value>,
-  ) -> ObservableBase<OfEmitter<Address>> {
-    let client = SClient::new_from_url("https://chrysalis-nodes.iota.cafe:443/");
+  ) -> ObservableBase<OfEmitter<IAddress>> {
+    let client = Client::new_from_url("https://api.lb-0.testnet.chrysalis2.com");
     let payloadStr = serde_json::to_string(&anyBody).unwrap();
     let payload = encode_config(&payloadStr, URL_SAFE_NO_PAD);
     let public = Bytes(payload.as_bytes().to_vec());
@@ -81,17 +82,18 @@ impl IAppService for AppService {
     )
     .unwrap();
 
-    let mut author: SAuthor<SClient> = SAuthor::import(
+    let mut author: Author<Client> = Author::import(
       &decode_config(sendOneQuery.author.state.clone(), URL_SAFE_NO_PAD).unwrap(),
       &sendOneQuery.author.password.clone(),
       client.clone(),
     )
     .unwrap();
-    let _ = author.fetch_state();
+    let _ = author.fetch_state().unwrap();
+    let _ = author.fetch_all_next_msgs();
     let (retPreviosMsgTag, _): (TangleAddress, _) = author
       .send_signed_packet(&keyLoadLink, &public, &Bytes::default())
       .unwrap();
-    observable::of(Address {
+    observable::of(IAddress {
       appInst: retPreviosMsgTag.appinst.to_string(),
       msgId: retPreviosMsgTag.msgid.to_string(),
     })
@@ -100,8 +102,8 @@ impl IAppService for AppService {
     &self,
     fetchAllQuery: FetchAllQuery,
   ) -> ObservableBase<OfEmitter<Vec<HashMap<String, Value>>>> {
-    let client = SClient::new_from_url("https://chrysalis-nodes.iota.cafe:443/");
-    let mut subscriber: Subscriber<SClient> = Subscriber::new(&randomSeed(), client.clone());
+    let client = Client::new_from_url("https://api.lb-0.testnet.chrysalis2.com");
+    let mut subscriber: Subscriber<Client> = Subscriber::new(&randomSeed(), client.clone());
     let importedLoadLink = TangleAddress::from_str(
       &fetchAllQuery.address.appInst.clone(),
       &fetchAllQuery.address.msgId.clone(),
