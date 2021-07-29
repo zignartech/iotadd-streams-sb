@@ -50,8 +50,8 @@ impl IAppService for AppService {
     let mut author: Author<Client> =
       Author::new(&createAuthorBody.seed, ChannelType::SingleBranch, client);
     let annAddress: TangleAddress = author.send_announce().unwrap();
-    let password = "password".to_string();
-    let exported = author.export(&password).unwrap();
+    let password = randomSeed(12);
+    let exported = author.export(&password.clone()).unwrap();
     let encodedExported = encode_config(exported.clone(), URL_SAFE_NO_PAD);
 
     observable::of(AuthorSchema {
@@ -61,7 +61,7 @@ impl IAppService for AppService {
         msgId: annAddress.msgid.to_string(),
       },
       author: IAuthor {
-        password: password,
+        password: password.clone(),
         state: encodedExported,
       },
     })
@@ -103,7 +103,7 @@ impl IAppService for AppService {
     fetchAllQuery: FetchAllQuery,
   ) -> ObservableBase<OfEmitter<Vec<HashMap<String, Value>>>> {
     let client = Client::new_from_url(&std::env::var("NODE").unwrap());
-    let mut subscriber: Subscriber<Client> = Subscriber::new(&randomSeed(), client.clone());
+    let mut subscriber: Subscriber<Client> = Subscriber::new(&randomSeed(64), client.clone());
     let importedLoadLink = TangleAddress::from_str(
       &fetchAllQuery.address.appInst.clone(),
       &fetchAllQuery.address.msgId.clone(),
