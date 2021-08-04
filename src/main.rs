@@ -2,17 +2,17 @@
 use crate::app_controller::addressFetchAll;
 use crate::app_controller::addressSendOne;
 use crate::app_module::AppModule;
-use std::sync::Arc;
-use actix_web::{App, HttpServer};
 use actix_cors::Cors;
+use actix_web::{App, HttpServer};
+use std::sync::Arc;
 mod actix_handler;
+mod actix_utils;
 mod app_controller;
 mod app_http_controller;
 mod app_module;
 mod app_service;
-mod actix_utils;
-mod rx_utils;
 mod models;
+mod rx_utils;
 mod streams_utils;
 use crate::app_controller::index;
 use actix_web::middleware::Logger;
@@ -20,11 +20,14 @@ use actix_web::middleware::Logger;
 async fn main() -> std::io::Result<()> {
   // dotenv::dotenv().expect("Failed to read .env file");
   dotenv::from_path("./development.env").ok();
-  println!("NODE is set to: {:?}",std::env::var("NODE").expect("NODE not defined as environment var"));
+  println!(
+    "NODE is set to: {:?}",
+    std::env::var("NODE").expect("NODE not defined as environment var")
+  );
   let appModule = Arc::new(AppModule::builder().build());
   let server = HttpServer::new(move || {
     App::new()
-      .wrap(Cors::new().supports_credentials() )
+      .wrap(Cors::permissive())
       .wrap(Logger::default())
       .app_data(appModule.clone())
       .service(index)

@@ -8,7 +8,7 @@ version = "0.1.0"
 
 
 [dependencies]
-actix-web = {git = "https://github.com/actix/actix-web", tag = "web-v4.0.0-beta.8"}
+actix-web = {version = "4.0.0-beta.8"}
 actix-web-validator = "2.1.1"
 anyhow = "1.0.42"
 futures = "0.3.16"
@@ -24,4 +24,4 @@ validator = { version = "0.14", features = ["derive"] }
 base64 = "0.13.0"
 rand = "0.7.3"
 dotenv = "0.15.0"
-actix-cors = "0.5.4"
+actix-cors = {version="0.6.0-beta.2"} 
