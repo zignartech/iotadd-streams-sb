@@ -24,3 +24,4 @@ validator = { version = "0.14", features = ["derive"] }
 base64 = "0.13.0"
 rand = "0.7.3"
 dotenv = "0.15.0"
+actix-cors = "0.5.4"

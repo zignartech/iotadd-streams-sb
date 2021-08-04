@@ -4,6 +4,7 @@ use crate::app_controller::addressSendOne;
 use crate::app_module::AppModule;
 use std::sync::Arc;
 use actix_web::{App, HttpServer};
+use actix_cors::Cors;
 mod actix_handler;
 mod app_controller;
 mod app_http_controller;
@@ -23,6 +24,7 @@ async fn main() -> std::io::Result<()> {
   let appModule = Arc::new(AppModule::builder().build());
   let server = HttpServer::new(move || {
     App::new()
+      .wrap(Cors::new().supports_credentials() )
       .wrap(Logger::default())
       .app_data(appModule.clone())
       .service(index)
