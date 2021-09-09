@@ -29,7 +29,13 @@ pub async fn addressSendOne(
   let s = String::from_utf8(bytes.to_vec()).unwrap();
   let json: HashMap<String, Value> = serde_json::from_str(&s).unwrap();
   let address = httpController.sendOne(query.0.clone(),json);
-  return HttpResponse::Ok().json(pollObservable(address).await);
+
+  match address{
+    Ok(v) => return HttpResponse::Ok().json(pollObservable(v).await),
+    _ => return HttpResponse::Ok().json("chingtmd"),
+  }
+
+  //return HttpResponse::Ok().json(pollObservable(address).await);
 }
 #[post("/address/fetchAll")]
 pub async fn addressFetchAll(

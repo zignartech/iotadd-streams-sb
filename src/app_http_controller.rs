@@ -22,7 +22,8 @@ pub trait IAppHttpController: Interface {
     &self,
     sendOneQuery: SendOneQuery,
     anyBody: HashMap<String, Value>,
-  ) -> ObservableBase<OfEmitter<Address>>;
+ // ) -> ObservableBase<OfEmitter<Address>>;
+  ) -> Result< ObservableBase<OfEmitter<Address>>, &str>;
   fn fetchAll(
     &self,
     fetchAllQuery: FetchAllQuery,
@@ -50,7 +51,8 @@ impl IAppHttpController for AppHttpController {
     &self,
     sendOneQuery: SendOneQuery,
     anyBody: HashMap<String, Value>,
-  ) -> ObservableBase<OfEmitter<Address>> {
+ // ) -> ObservableBase<OfEmitter<Address>> {
+  )->Result< ObservableBase<OfEmitter<Address>>, &str>{
     return self.appService.sendOne(sendOneQuery, anyBody);
   }
   fn fetchAll(
