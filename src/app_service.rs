@@ -12,9 +12,9 @@ use iota_streams::app::message::GenericMessage;
 use iota_streams::app::transport::tangle::client::iota_client::Client as OtherClient;
 use iota_streams::app::transport::tangle::client::{Client, SendOptions};
 use iota_streams::app::transport::tangle::{AppInst, MsgId, TangleAddress};
+use iota_streams::app_channels::api::tangle::Author;
 use iota_streams::app_channels::api::tangle::MessageContent;
 use iota_streams::app_channels::api::tangle::Subscriber;
-use iota_streams::app_channels::api::tangle::{Author, ChannelType};
 use iota_streams::ddml::types::Bytes;
 use rxrust::observable;
 use rxrust::observable::of::OfEmitter;
@@ -22,10 +22,10 @@ use rxrust::observable::ObservableBase;
 use serde_json::Value;
 use shaku::{Component, Interface};
 use std::collections::HashMap;
-use std::io;
 
 //use iota_streams::iota_streams_core::Error;
 
+/*
 pub trait IAppService: Interface {
   fn createAuthor(
     &self,
@@ -36,13 +36,14 @@ pub trait IAppService: Interface {
     &self,
     sendOneQuery: SendOneQuery,
     anyBody: HashMap<String, Value>,
-  //) -> ObservableBase<OfEmitter<IAddress>>;
+    //) -> ObservableBase<OfEmitter<IAddress>>;
   ) -> Result<ObservableBase<OfEmitter<IAddress>>, &str>;
   fn fetchAll(
     &self,
     fetchAllQuery: FetchAllQuery,
   ) -> ObservableBase<OfEmitter<Vec<HashMap<String, Value>>>>;
 }
+
 #[derive(Component)]
 #[shaku(interface = IAppService)]
 pub struct AppService;
@@ -57,6 +58,8 @@ impl IAppService for AppService {
     let send_options: SendOptions = SendOptions {
       url: std::env::var("NODE").unwrap(),
       local_pow: false,
+      depth: 3,
+      threads: 2,
     };
 
     let iota_client = block_on(
@@ -71,8 +74,9 @@ impl IAppService for AppService {
     let client = Client::new(send_options, iota_client);
 
     let mut author: Author<Client> =
-      Author::new(&createAuthorBody.seed, ChannelType::SingleBranch, client);
-    let annAddress: TangleAddress = author.send_announce().unwrap();
+     // Author::new(&createAuthorBody.seed,"utf-8", ChannelType::SingleBranch, client);
+     Author::new(&createAuthorBody.seed,"utf-8", 1024, false,client );
+    let annAddress: TangleAddress = author.send_announce().await;
     let password = randomSeed(12);
     let exported = author.export(&password.clone()).unwrap();
     let encodedExported = encode_config(exported.clone(), URL_SAFE_NO_PAD);
@@ -93,13 +97,14 @@ impl IAppService for AppService {
     &self,
     sendOneQuery: SendOneQuery,
     anyBody: HashMap<String, Value>,
-  ) ->Result< ObservableBase<OfEmitter<IAddress>>, &str> 
-  {
+  ) -> Result<ObservableBase<OfEmitter<IAddress>>, &str> {
     //let client = Client::new_from_url(&std::env::var("NODE").unwrap());
 
     let send_options: SendOptions = SendOptions {
       url: std::env::var("NODE").unwrap(),
       local_pow: false,
+      depth: 3,
+      threads: 2,
     };
 
     let iota_client = block_on(
@@ -132,23 +137,18 @@ impl IAppService for AppService {
     let _ = author.fetch_state().unwrap();
     let _ = author.fetch_all_next_msgs();
 
-    let result = author
-      .send_signed_packet(&keyLoadLink, &public, &Bytes::default());
-      //.unwrap();    
-    
+    let result = author.send_signed_packet(&keyLoadLink, &public, &Bytes::default());
+    //.unwrap();
 
-      let (retPreviosMsgTag, _): (TangleAddress, _) =  match result{
-       Ok(v) =>v,
-       Err(e) => return Err("Some error message"),      
-      };
-      
+    let (retPreviosMsgTag, _): (TangleAddress, _) = match result {
+      Ok(v) => v,
+      Err(e) => return Err("Some error message"),
+    };
     Ok(observable::of(IAddress {
       appInst: retPreviosMsgTag.appinst.to_string(),
       msgId: retPreviosMsgTag.msgid.to_string(),
     }))
-
   }
-  
   fn fetchAll(
     &self,
     fetchAllQuery: FetchAllQuery,
@@ -158,6 +158,8 @@ impl IAppService for AppService {
     let send_options: SendOptions = SendOptions {
       url: std::env::var("NODE").unwrap(),
       local_pow: false,
+      depth: 3,
+      threads: 2,
     };
 
     let iota_client = block_on(
@@ -171,7 +173,8 @@ impl IAppService for AppService {
 
     let client = Client::new(send_options, iota_client);
 
-    let mut subscriber: Subscriber<Client> = Subscriber::new(&randomSeed(64), client.clone());
+    let mut subscriber: Subscriber<Client> =
+      Subscriber::new(&randomSeed(64), "utf-8", 1024, client.clone());
     let importedLoadLink = TangleAddress::from_str(
       &fetchAllQuery.address.appInst.clone(),
       &fetchAllQuery.address.msgId.clone(),
@@ -206,3 +209,5 @@ impl IAppService for AppService {
     observable::of(msgsPublicPayload)
   }
 }
+
+*/

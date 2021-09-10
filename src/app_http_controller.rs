@@ -1,5 +1,5 @@
 // use futures::Future;
-use crate::app_service::IAppService;
+//use crate::app_service::IAppService;
 use crate::models::dtos::create_author_dto::CreateAuthorBody;
 use crate::models::dtos::create_author_dto::CreateAuthorQuery;
 use crate::models::dtos::fetch_all_dto::FetchAllQuery;
@@ -12,6 +12,7 @@ use serde_json::Value;
 use shaku::{Component, Interface, };
 use std::collections::HashMap;
 use std::sync::Arc;
+/*
 pub trait IAppHttpController: Interface {
   fn createAuthor(
     &self,
@@ -62,3 +63,4 @@ impl IAppHttpController for AppHttpController {
     return self.appService.fetchAll(fetchAllQuery);
   }
 }
+*/
