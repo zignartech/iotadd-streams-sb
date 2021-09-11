@@ -1,19 +1,21 @@
-use crate::actix_handler::inject_component::Inject;
+// use crate::actix_handler::inject_component::Inject;
 // use crate::app_http_controller::IAppHttpController;
 // use crate::app_module::AppModule;
 use crate::models::dtos::create_author_dto::{CreateAuthorBody, CreateAuthorQuery};
 use crate::models::dtos::fetch_all_dto::FetchAllQuery;
 use crate::models::dtos::send_one_dto::SendOneQuery;
-use crate::rx_utils::poll_observable::pollObservable;
+// use crate::rx_utils::poll_observable::pollObservable;
 use actix_web::HttpResponse;
 use actix_web::{post, web, web::Json, web::Query, Responder};
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
 
-use crate::models::schemas::author_schema::Address as IAddress;
-use crate::models::schemas::author_schema::Author as IAuthor;
-use crate::models::schemas::author_schema::AuthorSchema;
+use iota_streams::app::transport::tangle::PAYLOAD_BYTES;
+
+// use crate::models::schemas::author_schema::Address as IAddress;
+// use crate::models::schemas::author_schema::Author as IAuthor;
+// use crate::models::schemas::author_schema::AuthorSchema;
 use crate::streams_utils::random_seed::randomSeed;
 use base64::{decode_config, encode_config, URL_SAFE_NO_PAD};
 use futures::executor::block_on;
@@ -47,8 +49,8 @@ pub async fn index(
   let send_options: SendOptions = SendOptions {
     url: std::env::var("NODE").unwrap(),
     local_pow: false,
-    depth: 1,
-    threads: 3,
+    depth: 3,
+    threads: 2,
   };
 
   let iota_client = block_on(
@@ -64,7 +66,7 @@ pub async fn index(
 
   let mut author: Author<Client> =
    // Author::new(&createAuthorBody.seed,"utf-8", ChannelType::SingleBranch, client);
-   Author::new(&seed,"utf-8", 1024, false,client );
+   Author::new(&seed,"utf-8", PAYLOAD_BYTES, false,client );
   let j = author.send_announce().await; //let annAddress: TangleAddress
 
   let annAddress: TangleAddress = match j {
@@ -127,8 +129,8 @@ pub async fn addressSendOne(
   let send_options: SendOptions = SendOptions {
     url: std::env::var("NODE").unwrap(),
     local_pow: false,
-    depth: 1,
-    threads: 3,
+    depth: 3,
+    threads: 1,
   };
 
   let iota_client = block_on(
@@ -139,7 +141,7 @@ pub async fn addressSendOne(
       .finish(),
   )
   .unwrap();
-
+  // send_keyload_for_everyone()
   let client = Client::new(send_options, iota_client);
 
   let payloadStr = serde_json::to_string(&json).unwrap();
@@ -206,7 +208,7 @@ pub async fn addressFetchAll(
   let send_options: SendOptions = SendOptions {
     url: std::env::var("NODE").unwrap(),
     local_pow: false,
-    depth: 1,
+    depth: 3,
     threads: 3,
   };
 
@@ -222,7 +224,7 @@ pub async fn addressFetchAll(
   let client = Client::new(send_options, iota_client);
 
   let mut subscriber: Subscriber<Client> =
-    Subscriber::new(&randomSeed(64), "utf-8", 1024, client.clone());
+    Subscriber::new(&randomSeed(64), "utf-8", PAYLOAD_BYTES, client.clone());
   let importedLoadLink =
     TangleAddress::from_str(&address.appInst.clone(), &address.msgId.clone()).unwrap();
   subscriber.receive_announcement(&importedLoadLink).await;
