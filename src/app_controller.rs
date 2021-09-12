@@ -3,6 +3,7 @@
 // use crate::app_module::AppModule;
 use crate::models::dtos::create_author_dto::{CreateAuthorBody, CreateAuthorQuery};
 use crate::models::dtos::fetch_all_dto::FetchAllQuery;
+use crate::models::dtos::create_subscribe_dto::CreateSubscriberQuery;
 use crate::models::dtos::send_one_dto::SendOneQuery;
 // use crate::rx_utils::poll_observable::pollObservable;
 use actix_web::HttpResponse;
@@ -109,6 +110,113 @@ pub async fn index(
   });
 
   HttpResponse::Ok().json(result)
+}
+
+#[post("/create_subscriber")]
+pub async fn createSubscriber(
+  query: Query<CreateSubscriberQuery>,
+  body: Json<CreateAuthorBody>,
+) -> HttpResponse {
+
+    // from postman
+    // let rs = query.into_inner().randomSeed;
+    let seed = body.into_inner().seed;
+
+    let q = query.into_inner();
+    let address = q.address;
+    // let author = q.author;
+    //
+    let send_options: SendOptions = SendOptions {
+      url: std::env::var("NODE").unwrap(),
+      local_pow: false,
+      depth: 3,
+      threads: 2,
+    };
+  
+    let iota_client = block_on(
+      OtherClient::builder()
+        .with_node(&std::env::var("NODE").unwrap())
+        .unwrap()
+        .with_local_pow(false)
+        .finish(),
+    )
+    .unwrap();
+  
+    let client = Client::new(send_options, iota_client);
+
+    let mut subscriberA = Subscriber::new(&seed, "utf-8", PAYLOAD_BYTES, client);
+
+    let announcement_link =
+    TangleAddress::from_str(&address.appInst.clone(), &address.msgId.clone()).unwrap();
+
+    let result = subscriberA.receive_announcement(&announcement_link).await;
+        print!("  SubscriberA: {}", subscriberA);
+
+    match result {
+      Ok(v) => println!("receive_announcement ok"),
+      _ => println!("receive_announcement error"),
+    };
+        // if author.channel_address() == subscriberA.channel_address(){
+        //   println!("Channel address matched {}")
+        // }
+    if 
+    subscriberA
+    .channel_address()
+    .map_or(false, |appinst| appinst == &announcement_link.appinst){
+      println!("Appinst matched");
+    } else{
+      println!("Appinst Miss matched");
+    }
+
+    let subscribeA_link = {
+      let msg = subscriberA.send_subscribe(&announcement_link).await.expect("Send subscribe error");
+      println!("  msg => <{}> {:?}", msg.msgid, msg);
+      print!("  SubscriberA: {}", subscriberA);
+      msg
+  };
+    // author.receive_subscribe(&subscribeA_link)?;
+    // print!("  Author     : {}", author); 
+
+    // subscriberA.receive_keyload(&previous_msg_link)?;
+    // print!("  SubscriberA: {}", subscriberA);
+  
+    // let (_signer_pk, unwrapped_public, unwrapped_masked) = subscriberA.receive_signed_packet(&previous_msg_link)?;
+    // print!("  SubscriberA: {}", subscriberA);
+    // try_or!(
+    //     public_payload == unwrapped_public,
+    //     PublicPayloadMismatch(public_payload.to_string(), unwrapped_public.to_string())
+    // )?;
+    // try_or!(
+    //     masked_payload == unwrapped_masked,
+    //     PublicPayloadMismatch(masked_payload.to_string(), unwrapped_masked.to_string())
+    // )?;
+
+    // println!("\nSubscriber A fetching transactions...");
+    // utils::s_fetch_next_messages(&mut subscriberA);
+
+    // println!("\nTagged packet 1 - SubscriberA");
+    // let previous_msg_link = {
+    //     let (msg, seq) = subscriberA.send_tagged_packet(&previous_msg_link, &public_payload, &masked_payload)?;
+    //     println!("  msg => <{}> {:?}", msg.msgid, msg);
+    //     panic_if_not(seq.is_none());
+    //     print!("  SubscriberA: {}", subscriberA);
+    //     msg
+    // };
+
+  //   let result = json!({
+  //     "seed": rs.to_string(),
+  //     "address": {
+  //         "appInst":annAddress.appinst.to_string(),
+  //         "msgId": annAddress.msgid.to_string(),
+  //     },
+  //     "author":{
+  //       "password": password.clone(),
+  //       "state": encodedExported,
+  //     },
+  // });
+
+  HttpResponse::Ok().json("Subscribe ok")
+
 }
 
 #[post("/address/sendOne")]

@@ -17,6 +17,7 @@ mod streams_utils;
 use crate::app_controller::index;
 use crate::app_controller::addressSendOne;
 use crate::app_controller::addressFetchAll;
+use crate::app_controller::createSubscriber;
 use actix_web::middleware::Logger;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -35,6 +36,7 @@ async fn main() -> std::io::Result<()> {
       .service(index)
        .service(addressSendOne)
        .service(addressFetchAll)
+       .service(createSubscriber)
   })
   .bind("0.0.0.0:3030")?
   .run()
