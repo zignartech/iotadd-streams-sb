@@ -268,19 +268,19 @@ pub async fn addressSendOne(
   let _ = author.fetch_state().unwrap();
   let _ = author.fetch_all_next_msgs().await;
 
-  let result = author
+  let (msg_link, _seq_link) = author
     .send_signed_packet(&keyLoadLink, &public, &Bytes::default())
-    .await;
+    .await.unwrap();
   //.unwrap();
 
-  let (retPreviosMsgTag, _): (TangleAddress, _) = match result {
-    Ok(v) => v,
-    _ => {
-      return HttpResponse::Ok()
-        .content_type("application/json")
-        .json("sendone error");
-    }
-  };
+  // let (retPreviosMsgTag, _): (TangleAddress, _) = match result {
+  //   Ok(v) => v,
+  //   _ => {
+  //     return HttpResponse::Ok()
+  //       .content_type("application/json")
+  //       .json("sendone error");
+  //   }
+  // };
   /*
     let address = Ok(observable::of(IAddress {
       appInst: retPreviosMsgTag.appinst.to_string(),
@@ -289,8 +289,8 @@ pub async fn addressSendOne(
   */
 
   let j = json!({
-    "appInst":retPreviosMsgTag.appinst.to_string(),
-    "msgId": retPreviosMsgTag.msgid.to_string()
+    "appInst":msg_link.appinst.to_string(),
+    "msgId": msg_link.msgid.to_string()
 
   });
 
