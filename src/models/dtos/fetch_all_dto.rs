@@ -6,4 +6,5 @@ use validator::Validate;
 pub struct FetchAllQuery {
   #[serde(deserialize_with = "deserializeJsonString")]
   pub address: Address,
+  
 }

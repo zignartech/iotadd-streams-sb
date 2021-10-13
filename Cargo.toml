@@ -16,7 +16,8 @@ futures-util = "0.3.16"
 rxrust = {git ="https://github.com/rxRust/rxRust"}
 # paperclip = { version = "0.5", features = ["actix-nightly"] }
 serde = { version = "1.0.126", features = ["derive"] }
-iota-streams = {git = "https://github.com/iotaledger/streams", branch = "v1.1.0", features = ["async", "async-client"] }
+iota-streams = { git = "https://github.com/iotaledger/streams", branch  = "v1.2.0"}
+# iota-streams = {git = "https://github.com/iotaledger/streams", branch = "v1.1.0", features = ["async", "async-client"] }
 serde_json = "1.0.64"
 shaku = "0.6.1"
 tokio = {version = "1.8.2", features = ["full"]}
