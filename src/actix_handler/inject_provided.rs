@@ -18,7 +18,7 @@ impl<M: ModuleInterface + HasProvider<I> + ?Sized, I: Interface + ?Sized> FromRe
 {
   type Error = Error;
   type Future = future::Ready<Result<Self, Error>>;
-  type Config = ();
+  // type Config = ();
 
   fn from_request(req: &HttpRequest, _: &mut Payload<PayloadStream>) -> Self::Future {
     let module = match get_module_from_provider_state::<M, I>(&req) {

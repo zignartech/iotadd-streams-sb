@@ -1,6 +1,6 @@
 use rand::Rng;
 pub fn randomSeed(size :usize) -> String {
-  const CHARSET: &[u8] = b"0123456789abcdef";
+  const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ9";
   let SEED_LEN: usize = size;
   let mut rng = rand::thread_rng();
   let seed: String = (0..SEED_LEN)

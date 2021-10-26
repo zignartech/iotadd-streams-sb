@@ -17,7 +17,7 @@ impl<M: ModuleInterface + HasComponent<I> + ?Sized, I: Interface + ?Sized> FromR
 {
   type Error = Error;
   type Future = futures_util::future::Ready<Result<Self, Error>>;
-  type Config = ();
+  // type Config = ();
 
   fn from_request(req: &HttpRequest, _: &mut Payload<PayloadStream>) -> Self::Future {
     let module = match get_module_from_component_state::<M, I>(&req) {

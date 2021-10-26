@@ -46,8 +46,8 @@ impl<T> Future for FutureWithReturn<T> {
   }
 }
 
-pub fn resume<'a>(future: &mut Pin<Box<dyn Future<Output = ()> + 'a>>) -> bool {
-  let mut futures_context = ExecState::RunOnce;
-  let futures_context_ref: &mut _ = unsafe { std::mem::transmute(&mut futures_context) };
-  matches!(future.as_mut().poll(futures_context_ref), Poll::Ready(_))
-}
+// pub fn resume<'a>(future: &mut Pin<Box<dyn Future<Output = ()> + 'a>>) -> bool {
+//   let mut futures_context = ExecState::RunOnce;
+//   let futures_context_ref: &mut _ = unsafe { std::mem::transmute(&mut futures_context) };
+//   matches!(future.as_mut().poll(futures_context_ref), Poll::Ready(_))
+// }
