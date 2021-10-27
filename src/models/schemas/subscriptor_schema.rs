@@ -7,10 +7,10 @@ pub use iota_streams::ddml::types::typenum;
 pub struct SubscriptorSchema {
   // pub seed: String,
   pub address: Address,
-  pub subscriptor: Subscriptor,
+  pub subscriptor: Subscriber,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
-pub struct Subscriptor {
+pub struct Subscriber {
   pub password: String,
   pub state: String,
   // pub seed: String,

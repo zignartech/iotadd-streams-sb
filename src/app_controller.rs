@@ -143,7 +143,7 @@ println!("address : {}", &get_address);
         "appInst":announcement_link.appinst.to_string(),
         "msgId": announcement_link.msgid.to_string(),
     },
-    "subscriptor":{
+    "subscriber":{
       "password": password.clone(),
       "state": encodedExported,
       // "seed": seed.to_string(),
@@ -254,7 +254,7 @@ pub async fn addressFetchAll(
 ) -> HttpResponse {
   let q = query.into_inner();
   let address = q.address;
-  let subscriptor = q.subscriptor;
+  let subscriptor = q.subscriber;
 
   let send_options: SendOptions = SendOptions {
     url: std::env::var("NODE").unwrap(),
