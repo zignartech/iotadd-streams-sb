@@ -1,6 +1,7 @@
 use actix_web::web::Json;
 use crate::models::dtos::create_author_dto::{CreateAuthorBody, CreateAuthorQuery};
 use crate::models::dtos::fetch_all_dto::FetchAllQuery;
+use crate::models::dtos::fetch_prev_msg::FetchPrevMsgQuery;
 use crate::models::dtos::create_subscribe_dto::CreateSubscriberQuery;
 use crate::models::dtos::send_one_dto::SendOneQuery;
 use actix_web::HttpResponse;
@@ -286,7 +287,7 @@ pub async fn addressFetchAll(
 
   println!("Subscriber1: {}", subscriber);
 
-  subscriber.receive_announcement(&importedLoadLink).await.unwrap();
+  // subscriber.receive_announcement(&importedLoadLink).await.unwrap();
 
   if subscriber.is_registered() {
     println!("subscriber Ok");
@@ -294,6 +295,8 @@ pub async fn addressFetchAll(
   println!("Subscriber2: {}", subscriber);
 
   let msgs = subscriber.fetch_all_next_msgs().await;
+  // let msgs = subscriber.receive_msg_by_sequence_number(&importedLoadLink,3).await;
+  // let msgs = subscriber.fetch_prev_msgs(&importedLoadLink,100).await.unwrap();
 
   println!("Subscriber3: {}", subscriber);
 
@@ -324,10 +327,107 @@ let mut my_vec:Vec<Value> = Vec::new();
   }
   println!();
 
-  let exported = subscriber.export(&subscriptor.password.clone()).await.unwrap();
-  let encodedExported = encode_config(exported.clone(), URL_SAFE_NO_PAD);
-println!("password: {}", subscriptor.password.clone());
-println!("state: {}", encodedExported);
+//   let exported = subscriber.export(&subscriptor.password.clone()).await.unwrap();
+//   let encodedExported = encode_config(exported.clone(), URL_SAFE_NO_PAD);
+// println!("password: {}", subscriptor.password.clone());
+// println!("state: {}", encodedExported);
+
+
+
+  HttpResponse::Ok().json(my_vec)
+
+}
+
+
+#[post("/address/fetchPrevMsg")]
+pub async fn addressPrevMsg(
+
+  query: Query<FetchPrevMsgQuery>,
+) -> HttpResponse {
+  let q = query.into_inner();
+  let address = q.address;
+  let subscriptor = q.subscriber;
+  
+  let send_options: SendOptions = SendOptions {
+    url: std::env::var("NODE").unwrap(),
+    local_pow: false,
+  };
+
+  let iota_client = block_on(
+    OtherClient::builder()
+      .with_node(&std::env::var("NODE").unwrap())
+      .unwrap()
+      .with_local_pow(false)
+      .finish(),
+  )
+  .unwrap();
+
+  let client = Client::new(send_options, iota_client);
+
+    let mut subscriber: Subscriber<Client> = Subscriber::import(
+      &decode_config(subscriptor.state.clone(), URL_SAFE_NO_PAD).unwrap(),
+      &subscriptor.password.clone(),
+      client.clone(),
+    )
+    .await
+    .unwrap();
+
+    let get_address = address.appInst.clone()+ &":".to_string() + &address.msgId.clone();
+  let importedLoadLink =
+    TangleAddress::from_str(&get_address).unwrap();
+
+  println!("Subscriber1: {}", subscriber);
+
+  // subscriber.receive_announcement(&importedLoadLink).await.unwrap();
+
+  if subscriber.is_registered() {
+    println!("subscriber Ok");
+  }
+  println!("Subscriber2: {}", subscriber);
+
+  // let msgs = subscriber.fetch_all_next_msgs().await;
+  // let msgs = subscriber.receive_msg_by_sequence_number(&importedLoadLink,address.msgNum).await;
+  let msgs = subscriber.fetch_prev_msgs(&importedLoadLink,address.msgNum).await;
+
+  if let Err(_err) = msgs{
+      return HttpResponse::Ok()
+        .content_type("application/json")
+        .json("Msg num error");
+    }
+
+  println!("Subscriber3: {}", subscriber);
+
+  let processed_msgs = msgs.unwrap()
+  .iter()
+  .map(|msg| {
+      let content = &msg.body;
+      match content {
+          MessageContent::SignedPacket {
+              pk: _,
+              public_payload: _,
+              masked_payload,
+          } => String::from_utf8(decode_config(&String::from_utf8(masked_payload.0.to_vec()).unwrap(),URL_SAFE_NO_PAD).unwrap(),).unwrap(),
+          _ => String::default(),
+      }
+  })
+  .filter(|s| s != &String::default())
+  .collect::<Vec<String>>();
+
+
+let mut my_vec:Vec<Value> = Vec::new();
+
+  print!("Retrieved messages: ");
+  for i in 0..processed_msgs.len() {
+      print!("{}, ", processed_msgs[i]);
+      let jzx: Value = serde_json::from_str(& processed_msgs[i]).unwrap();
+      my_vec.push(jzx);
+  }
+  println!();
+
+//   let exported = subscriber.export(&subscriptor.password.clone()).await.unwrap();
+//   let encodedExported = encode_config(exported.clone(), URL_SAFE_NO_PAD);
+// println!("password: {}", subscriptor.password.clone());
+// println!("state: {}", encodedExported);
 
 
 

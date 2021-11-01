@@ -9,6 +9,7 @@ use crate::app_controller::createAuthor;
 use crate::app_controller::addressSendOne;
 use crate::app_controller::addressFetchAll;
 use crate::app_controller::createSubscriber;
+use crate::app_controller::addressPrevMsg;
 use actix_cors::Cors;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -24,6 +25,7 @@ async fn main() -> std::io::Result<()> {
        .service(addressSendOne)
        .service(addressFetchAll)
        .service(createSubscriber)
+       .service(addressPrevMsg)
   })
   .bind("0.0.0.0:3030")?
   .run()
