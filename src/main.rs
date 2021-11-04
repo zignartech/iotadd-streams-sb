@@ -10,6 +10,10 @@ use crate::app_controller::addressSendOne;
 use crate::app_controller::addressFetchAll;
 use crate::app_controller::createSubscriber;
 use crate::app_controller::addressPrevMsg;
+use crate::app_controller::sendSubscriber;
+use crate::app_controller::receiveSubscribe;
+use crate::app_controller::sendKeyload;
+use crate::app_controller::receiveKeyload;
 use actix_cors::Cors;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -26,6 +30,10 @@ async fn main() -> std::io::Result<()> {
        .service(addressFetchAll)
        .service(createSubscriber)
        .service(addressPrevMsg)
+       .service(sendSubscriber)
+       .service(receiveSubscribe)
+       .service(sendKeyload)
+       .service(receiveKeyload)
   })
   .bind("0.0.0.0:3030")?
   .run()

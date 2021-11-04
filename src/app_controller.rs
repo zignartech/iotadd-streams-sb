@@ -22,7 +22,7 @@ use iota_streams::app_channels::api::tangle::Subscriber;
 use iota_streams::ddml::types::Bytes;
 use std::str::FromStr;
 
-#[post("/author")]
+#[post("/create_author")]
 pub async fn createAuthor(
   query: Query<CreateAuthorQuery>,
   body: Json<CreateAuthorBody>,
@@ -91,7 +91,7 @@ pub async fn createAuthor(
   HttpResponse::Ok().json(result)
 }
 
-#[post("/subscriber")]
+#[post("/create_subscriber")]
 pub async fn createSubscriber(
   query: Query<CreateSubscriberQuery>,
   body: Json<CreateAuthorBody>,
@@ -157,6 +157,274 @@ println!("address : {}", &get_address);
 
 }
 
+#[post("/generate_subscription_address")]
+pub async fn sendSubscriber(
+  query: Query<FetchAllQuery>,
+  // body: Json<CreateAuthorBody>,
+) -> HttpResponse {
+
+  let q = query.into_inner();
+  let address = q.address;
+  let subscriptor = q.subscriber;
+
+  let send_options: SendOptions = SendOptions {
+    url: std::env::var("NODE").unwrap(),
+    local_pow: false,
+  };
+
+  let iota_client = block_on(
+    OtherClient::builder()
+      .with_node(&std::env::var("NODE").unwrap())
+      .unwrap()
+      .with_local_pow(false)
+      .finish(),
+  )
+  .unwrap();
+
+  let client = Client::new(send_options, iota_client);
+
+    let mut subscriber: Subscriber<Client> = Subscriber::import(
+      &decode_config(subscriptor.state.clone(), URL_SAFE_NO_PAD).unwrap(),
+      &subscriptor.password.clone(),
+      client.clone(),
+    )
+    .await
+    .unwrap();
+
+    let get_address = address.appInst.clone()+ &":".to_string() + &address.msgId.clone();
+  let importedLoadLink =
+    TangleAddress::from_str(&get_address).unwrap();
+
+  println!("Subscriber1: {}", subscriber);
+
+let subscribe_msg_a = subscriber.send_subscribe(&importedLoadLink).await.unwrap();
+println!("Subscriber2: {}", subscriber);
+  // let password = randomSeed(12);
+  let exported = subscriber.export(&subscriptor.password.clone()).await.unwrap();
+  let encodedExported = encode_config(exported.clone(), URL_SAFE_NO_PAD);
+
+  let result = json!({
+      
+    "address": {
+        "appInst":subscribe_msg_a.appinst.to_string(),
+        "msgId": subscribe_msg_a.msgid.to_string(),
+    },
+    "subscriber":{
+      "password": subscriptor.password.clone(),
+      "state": encodedExported,
+      // "seed": seed.to_string(),
+      
+    },
+    
+});
+
+  HttpResponse::Ok().json(result)
+
+}
+
+#[post("/register_subscriber")]
+pub async fn receiveSubscribe(
+
+  query: Query<SendOneQuery>,
+) -> HttpResponse {
+  let q = query.into_inner();
+  let address = q.address;
+  let autor = q.author;
+  
+
+  let send_options: SendOptions = SendOptions {
+    url: std::env::var("NODE").unwrap(),
+    local_pow: false,
+  };
+
+  let iota_client = block_on(
+    OtherClient::builder()
+      .with_node(&std::env::var("NODE").unwrap())
+      .unwrap()
+      .with_local_pow(false)
+      .finish(),
+  )
+  .unwrap();
+
+  let client = Client::new(send_options, iota_client);
+
+  let get_address = address.appInst.clone()+ &":".to_string() + &address.msgId.clone();
+  println!("address: {}",get_address);
+  let keyLoadLink =
+    TangleAddress::from_str(&get_address).unwrap();
+
+  let mut author: Author<Client> = Author::import(
+    &decode_config(autor.state.clone(), URL_SAFE_NO_PAD).unwrap(),
+    &autor.password.clone(),
+    client.clone(),
+  )
+  .await
+  .unwrap();
+  
+  print!("  Author1     : {}", author);
+  author.receive_subscribe(&keyLoadLink).await.unwrap();
+        print!("  Author2     : {}", author);
+    // }
+let announcement_link = author.announcement_link().unwrap();
+    let exported = author.export(&autor.password.clone()).await.unwrap();
+    let encodedExported = encode_config(exported.clone(), URL_SAFE_NO_PAD);
+
+
+  let j = json!({
+      
+      "address": {
+          "appInst":announcement_link.appinst.to_string(),
+          "msgId": announcement_link.msgid.to_string(),
+      },
+      "author":{
+        "password": autor.password.clone(),
+        "state": encodedExported,
+        // "seed": autor.seed.to_string(),
+        
+      },
+      
+  
+
+  });
+
+  HttpResponse::Ok().json(j)
+
+}
+
+#[post("/send_keyload")]
+pub async fn sendKeyload(
+
+  query: Query<SendOneQuery>,
+) -> HttpResponse {
+  let q = query.into_inner();
+  let address = q.address;
+  let autor = q.author;
+  
+
+  let send_options: SendOptions = SendOptions {
+    url: std::env::var("NODE").unwrap(),
+    local_pow: false,
+  };
+
+  let iota_client = block_on(
+    OtherClient::builder()
+      .with_node(&std::env::var("NODE").unwrap())
+      .unwrap()
+      .with_local_pow(false)
+      .finish(),
+  )
+  .unwrap();
+
+  let client = Client::new(send_options, iota_client);
+
+  let get_address = address.appInst.clone()+ &":".to_string() + &address.msgId.clone();
+  println!("address: {}",get_address);
+  let keyLoadLink =
+    TangleAddress::from_str(&get_address).unwrap();
+
+  let mut author: Author<Client> = Author::import(
+    &decode_config(autor.state.clone(), URL_SAFE_NO_PAD).unwrap(),
+    &autor.password.clone(),
+    client.clone(),
+  )
+  .await
+  .unwrap();
+  
+  print!("  Author1     : {}", author);
+  let (keyload_link, _seq) = author.send_keyload_for_everyone(&keyLoadLink).await.unwrap();
+        print!("  Author2     : {}", author);
+
+    let exported = author.export(&autor.password.clone()).await.unwrap();
+    let encodedExported = encode_config(exported.clone(), URL_SAFE_NO_PAD);
+
+
+  let j = json!({
+      
+      "address": {
+          "appInst":keyload_link.appinst.to_string(),
+          "msgId": keyload_link.msgid.to_string(),
+      },
+      "author":{
+        "password": autor.password.clone(),
+        "state": encodedExported,
+        // "seed": autor.seed.to_string(),
+        
+      },
+      
+  
+
+  });
+
+  HttpResponse::Ok().json(j)
+
+}
+
+#[post("/receive_keyload")]
+pub async fn receiveKeyload(
+  query: Query<FetchAllQuery>,
+  // body: Json<CreateAuthorBody>,
+) -> HttpResponse {
+
+  let q = query.into_inner();
+  let address = q.address;
+  let subscriptor = q.subscriber;
+
+  let send_options: SendOptions = SendOptions {
+    url: std::env::var("NODE").unwrap(),
+    local_pow: false,
+  };
+
+  let iota_client = block_on(
+    OtherClient::builder()
+      .with_node(&std::env::var("NODE").unwrap())
+      .unwrap()
+      .with_local_pow(false)
+      .finish(),
+  )
+  .unwrap();
+
+  let client = Client::new(send_options, iota_client);
+
+    let mut subscriber: Subscriber<Client> = Subscriber::import(
+      &decode_config(subscriptor.state.clone(), URL_SAFE_NO_PAD).unwrap(),
+      &subscriptor.password.clone(),
+      client.clone(),
+    )
+    .await
+    .unwrap();
+
+    let get_address = address.appInst.clone()+ &":".to_string() + &address.msgId.clone();
+  let importedLoadLink =
+    TangleAddress::from_str(&get_address).unwrap();
+
+  println!("Subscriber1: {}", subscriber);
+
+// let subscribe_msg_a = subscriber.send_subscribe(&importedLoadLink).await.unwrap();
+subscriber.receive_keyload(&importedLoadLink).await.unwrap();
+println!("Subscriber2: {}", subscriber);
+  // let password = randomSeed(12);
+  let exported = subscriber.export(&subscriptor.password.clone()).await.unwrap();
+  let encodedExported = encode_config(exported.clone(), URL_SAFE_NO_PAD);
+
+  let result = json!({
+      
+    // "address": {
+    //     "appInst":subscribe_msg_a.appinst.to_string(),
+    //     "msgId": subscribe_msg_a.msgid.to_string(),
+    // },
+    "subscriber":{
+      "password": subscriptor.password.clone(),
+      "state": encodedExported,
+      // "seed": seed.to_string(),
+      
+    },
+    
+});
+
+  HttpResponse::Ok().json(result)
+
+}
+
 #[post("/address/sendOne")]
 pub async fn addressSendOne(
 
@@ -203,6 +471,7 @@ pub async fn addressSendOne(
   )
   .await
   .unwrap();
+  let _msgs = author.fetch_all_next_msgs().await;
   
   print!("  Author1     : {}", author);
 
@@ -282,7 +551,7 @@ pub async fn addressFetchAll(
     .unwrap();
 
     let get_address = address.appInst.clone()+ &":".to_string() + &address.msgId.clone();
-  let importedLoadLink =
+  let _importedLoadLink =
     TangleAddress::from_str(&get_address).unwrap();
 
   println!("Subscriber1: {}", subscriber);
@@ -327,10 +596,10 @@ let mut my_vec:Vec<Value> = Vec::new();
   }
   println!();
 
-//   let exported = subscriber.export(&subscriptor.password.clone()).await.unwrap();
-//   let encodedExported = encode_config(exported.clone(), URL_SAFE_NO_PAD);
-// println!("password: {}", subscriptor.password.clone());
-// println!("state: {}", encodedExported);
+  let exported = subscriber.export(&subscriptor.password.clone()).await.unwrap();
+  let encodedExported = encode_config(exported.clone(), URL_SAFE_NO_PAD);
+println!("password: {}", subscriptor.password.clone());
+println!("state: {}", encodedExported);
 
 
 
