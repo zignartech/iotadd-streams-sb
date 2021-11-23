@@ -1,5 +1,6 @@
 use actix_web::web::Json;
 use crate::models::dtos::create_author_dto::{CreateAuthorBody, CreateAuthorQuery};
+use crate::models::dtos::fetch_all::FetchAll;
 use crate::models::dtos::fetch_all_dto::FetchAllQuery;
 use crate::models::dtos::fetch_prev_msg::FetchPrevMsgQuery;
 use crate::models::dtos::create_subscribe_dto::CreateSubscriberQuery;
@@ -520,10 +521,10 @@ pub async fn addressSendOne(
 #[post("/address/fetchAll")]
 pub async fn addressFetchAll(
 
-  query: Query<FetchAllQuery>,
+  query: Query<FetchAll>,
 ) -> HttpResponse {
   let q = query.into_inner();
-  let address = q.address;
+  // let address = q.address;
   let subscriptor = q.subscriber;
 
   let send_options: SendOptions = SendOptions {
@@ -550,9 +551,9 @@ pub async fn addressFetchAll(
     .await
     .unwrap();
 
-    let get_address = address.appInst.clone()+ &":".to_string() + &address.msgId.clone();
-  let _importedLoadLink =
-    TangleAddress::from_str(&get_address).unwrap();
+  //   let get_address = address.appInst.clone()+ &":".to_string() + &address.msgId.clone();
+  // let _importedLoadLink =
+  //   TangleAddress::from_str(&get_address).unwrap();
 
   println!("Subscriber1: {}", subscriber);
 
